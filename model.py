@@ -103,7 +103,7 @@ class AssociativeMemory(nn.Module):
         bsz, dim = emb.shape
         U = self.UT.T
 
-        score = self(x)
+        score = self.forward(x)
         prob = F.softmax(score, dim=1)
 
         # part of the tensor that is due to e_x
