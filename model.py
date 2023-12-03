@@ -136,7 +136,9 @@ class AssociativeMemory(nn.Module):
     @torch.no_grad()
     def autograd_hessian(self, x, weight=None):
         """
-        Compute Hessian with PyTorch internals
+        Compute Hessian with PyTorch internals.
+
+        Useful to check correctness, but much slower than `self.hessian`.
         """
         emb = self.E[x]
         bsz, dim = emb.shape
