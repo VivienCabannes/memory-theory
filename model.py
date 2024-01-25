@@ -27,9 +27,12 @@ def get_embeddings(num, dim, norm=True):
         emb /= sqrt(dim)
     return emb
 
+class LN(nn.Module):
+    def forward(self, x):
+        return x / torch.sqrt((x ** 2).sum(dim=1) + 1e-6).unsqueeze(1)
 
 class AssociativeMemory(nn.Module):
-    def __init__(self, E, U, random_init=False):
+    def __init__(self, E, U, random_init=True, layer_norm=False):
         """
         Associative memory model.
 
@@ -49,13 +52,18 @@ class AssociativeMemory(nn.Module):
         cls: num of output tokens
         """
         super().__init__()
+        self.layer_norm = layer_norm
         dim = E.shape[1]
         if random_init:
             self.W = nn.Parameter(torch.randn(dim, dim) / sqrt(dim))
         else:
+            assert not layer_norm, 'would lead to division by zero!'
             self.W = nn.Parameter(torch.zeros(dim, dim))
-        self.E = E
-        self.UT = U.T
+#         self.E = E
+#         self.UT = U.T
+        self.ln = LN()
+        self.register_buffer('E', E)
+        self.register_buffer('UT', U.T)
 
     def forward(self, x):
         """
@@ -71,8 +79,10 @@ class AssociativeMemory(nn.Module):
         bsz: batch size
         """
         emb = self.E[x]
-        if emb.size(0) < self.UT.size(1):   # if b < m
+        if self.layer_norm or emb.size(0) < self.UT.size(1):   # if b < m
             out = emb @ self.W      # (b, d) @ (d, d) -> (b, d)  in O(bd^2)
+            if self.layer_norm:
+                out = self.ln(out)
             out = out @ self.UT     # (b, d) @ (d, m) -> (b, m)  in O(bdm)
         else:
             out = self.W @ self.UT  # (d, d) @ (d, m) -> (d, m)  in O(md^2)
