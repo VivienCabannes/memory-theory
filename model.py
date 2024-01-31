@@ -27,9 +27,14 @@ def get_embeddings(num, dim, norm=True):
         emb /= sqrt(dim)
     return emb
 
+
 class LN(nn.Module):
+    """
+    Layer normalization.
+    """
     def forward(self, x):
         return x / torch.sqrt((x ** 2).sum(dim=1) + 1e-6).unsqueeze(1)
+
 
 class AssociativeMemory(nn.Module):
     def __init__(self, E, U, random_init=True, layer_norm=False):
@@ -59,8 +64,6 @@ class AssociativeMemory(nn.Module):
         else:
             assert not layer_norm, 'would lead to division by zero!'
             self.W = nn.Parameter(torch.zeros(dim, dim))
-#         self.E = E
-#         self.UT = U.T
         self.ln = LN()
         self.register_buffer('E', E)
         self.register_buffer('UT', U.T)
