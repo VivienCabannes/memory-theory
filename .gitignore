@@ -1,6 +1,10 @@
 __pycache__/
 figs/
+figures/
+eos_figures/
+notebooks/eos_data
 
 *.npy
 *.pdf
 *.png
+*.zip
