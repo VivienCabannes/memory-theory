@@ -1,4 +1,5 @@
 
+import os
 import subprocess
 import sys
 
@@ -6,11 +7,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn.functional as F
-from matplotlib import colormaps, rc
-from scipy.linalg import eigh
+from matplotlib import rc
 
 sys.path.append('.')
-from model import AssociativeMemory, get_embeddings
+from model import AssociativeMemory
+from config import SAVE_DIR
+
+
+os.makedirs(SAVE_DIR, exist_ok=True)
 
 torch.manual_seed(42)
 
@@ -30,8 +34,10 @@ n = 2
 d = 2
 p = .75         # probability of the first tokens
 
+
 def f(x, epsilon=0):
     return x
+
 
 # data
 all_x = torch.arange(n)
@@ -42,8 +48,8 @@ U = torch.eye(n)
 for alpha, sign in zip([-.5, .5, .95], ['neg', 'pos', 'spike']):
 
     E = torch.eye(n)
-    E[1,0] = alpha
-    E[1,1] = np.sqrt(1-alpha**2)
+    E[1, 0] = alpha
+    E[1, 1] = np.sqrt(1-alpha**2)
     model = AssociativeMemory(E, U)
 
     for lim, res in zip([1, 10], ['close', 'far']):
@@ -77,4 +83,4 @@ for alpha, sign in zip([-.5, .5, .95], ['neg', 'pos', 'spike']):
         # ax.set_xticks([])
         ax.set_yticks([])
         ax.set_title(fr'$\alpha={alpha}, p_1={p}$', fontsize=10)
-        fig.savefig(f'landscape_{sign}_{res}.pdf', bbox_inches='tight', pad_inches=0)
+        fig.savefig(SAVE_DIR / f'landscape_{sign}_{res}.pdf', bbox_inches='tight', pad_inches=0)

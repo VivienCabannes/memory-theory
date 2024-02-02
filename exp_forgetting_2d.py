@@ -1,17 +1,21 @@
 
+import os
 import subprocess
 import sys
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn.functional as F
-from matplotlib import colormaps, rc
-from scipy.linalg import eigh
+from matplotlib import rc
 
 sys.path.append('.')
 from model import AssociativeMemory, get_embeddings
+from config import SAVE_DIR
 
+
+os.makedirs(SAVE_DIR, exist_ok=True)
 
 WIDTH = 8.5              # inches (from ICML style file)
 HEIGHT = 8.5 / 1.618     # golden ratio
@@ -40,6 +44,8 @@ y_maxs = [10, 2, 5, 1.5]
 
 # hyparameters
 d = 2
+
+
 def f(x, epsilon=0):
     return x % 2
 
@@ -89,8 +95,6 @@ for seed, n, x_min, x_max, y_min, y_max in zip(seeds, ns, x_mins, x_maxs, y_mins
     fig, ax = plt.subplots(figsize=(.18 * WIDTH, .18 * HEIGHT))
     c = ax.contour(gamma_0, gamma_1, Z_train.reshape(num, num), levels=20, colors='k', linewidths=.5, linestyles='solid')
     c = ax.contourf(gamma_0, gamma_1, Z_accuracy.reshape((num, num)), levels=20, cmap='Blues_r', alpha=.75)
-    # ax.set_xticks([])
-    # ax.set_yticks([])
 
     i = np.argmin(Z_train)
     acc = Z_accuracy[i].item()
@@ -103,17 +107,13 @@ for seed, n, x_min, x_max, y_min, y_max in zip(seeds, ns, x_mins, x_maxs, y_mins
     if n == 30 or (n == 3 and seed == 81):
         ax.scatter(gamma_0.flatten()[i], gamma_1.flatten()[i], c='r', s=10)
 
-    plt.savefig(f'forgetting_2d_{n}_{seed}.pdf', bbox_inches='tight', pad_inches=0)
-
+    plt.savefig(SAVE_DIR / f'forgetting_2d_{n}_{seed}.pdf', bbox_inches='tight', pad_inches=0)
 
 
 n = 10
 lim = 10
 
 seed = 11
-d = 2
-def f(x, epsilon=0):
-    return x % 2
 
 torch.manual_seed(seed)
 
@@ -188,7 +188,7 @@ for lr in lrs:
         # compute loss
         score = model(x)
         loss = F.cross_entropy(score, y)
-        
+
         # record statistics
         with torch.no_grad():
             pred = model.fit(all_x)
@@ -220,8 +220,8 @@ i = np.argmin(Z_train)
 ax.scatter(gamma_0.flatten()[i], gamma_1.flatten()[i], c='r', s=10)
 # ax.set_xticks([])
 ax.set_yticks([])
-ax.set_title(fr'SGD trajectory')
-fig.savefig('forgetting_trajectory.pdf', bbox_inches='tight', pad_inches=0)
+ax.set_title(r'SGD trajectory')
+fig.savefig(SAVE_DIR / 'forgetting_trajectory.pdf', bbox_inches='tight', pad_inches=0)
 
 fig, ax = plt.subplots(figsize=(.18 * WIDTH, .18 * HEIGHT))
 for i in range(len(lrs)):
@@ -229,4 +229,4 @@ for i in range(len(lrs)):
     b, = ax.plot(1-all_accuracies[i], color='C' + str(i + 1), linewidth=1, linestyle='--')
 ax.legend([a, b], [r'${\cal L}(W_t) / 2$', r'${\cal L}_{01}(W_t)$'], loc='upper right', fontsize=6, frameon=True, ncol=1)
 ax.set_title(r'$t\to {\cal L}(W_t)$')
-fig.savefig('forgetting.pdf', bbox_inches='tight', pad_inches=0)
+fig.savefig(SAVE_DIR / 'forgetting.pdf', bbox_inches='tight', pad_inches=0)

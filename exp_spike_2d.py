@@ -1,4 +1,5 @@
 
+import os
 import subprocess
 import sys
 
@@ -11,6 +12,10 @@ from scipy.linalg import eigh
 
 sys.path.append('.')
 from model import AssociativeMemory, get_embeddings
+from config import SAVE_DIR
+
+
+os.makedirs(SAVE_DIR, exist_ok=True)
 
 torch.manual_seed(42)
 
@@ -36,6 +41,7 @@ nb_epoch = 35
 def f(x, epsilon=0):
     return x
 
+
 # data
 all_x = torch.arange(n)
 all_y = f(all_x)
@@ -43,8 +49,8 @@ proba = torch.tensor([p, 1-p])
 U = torch.eye(n)
 
 E = torch.eye(n)
-E[1,0] = alpha
-E[1,1] = np.sqrt(1-alpha**2)
+E[1, 0] = alpha
+E[1, 1] = np.sqrt(1-alpha**2)
 model = AssociativeMemory(E, U)
 
 
@@ -106,7 +112,7 @@ for lr in [10, 1]:
         # compute loss
         score = model(x)
         loss = (proba * F.cross_entropy(score, y, reduction='none')).sum()
-        
+
         # record statistics
         losses[i] = loss.item()
         with torch.no_grad():
@@ -130,17 +136,17 @@ c = ax.contourf(gamma_0, gamma_1, Z_accuracy.reshape((num, num)), cmap='Blues_r'
 
 leg = []
 for i in range(2):
-    a, = ax.plot(gammas_0[i], gammas_1[i], color={0: 'C2', 1: 'C3'}[i], linewidth={0: 1, 1:1}[i], linestyle={0: 'solid', 1:'solid'}[i])
+    a, = ax.plot(gammas_0[i], gammas_1[i], color={0: 'C2', 1: 'C3'}[i], linewidth={0: 1, 1: 1}[i], linestyle={0: 'solid', 1: 'solid'}[i])
     leg.append(a)
 ax.legend(leg, [r'$\eta=10$', r'$\eta=1$'], loc='upper right', fontsize=6, frameon=True, ncol=2)
 ax.set_title(fr'$\alpha={alpha}, p_1={p}$', fontsize=10)
-fig.savefig('spike_trajectory.pdf', bbox_inches='tight', pad_inches=0)
+fig.savefig(SAVE_DIR / 'spike_trajectory.pdf', bbox_inches='tight', pad_inches=0)
 
 fig, ax = plt.subplots(figsize=(.2 * WIDTH, .2 * HEIGHT))
-# a, = ax.plot(all_losses[0], color='C2', linewidth=1)
-# ax.plot(all_losses[1], color='C3', linewidth=1)
+a, = ax.plot(all_losses[0], color='C2', linewidth=1)
+ax.plot(all_losses[1], color='C3', linewidth=1)
 b, = ax.plot(1-all_accuracies[0], color='C2', linewidth=1, linestyle='--')
 ax.plot(1-all_accuracies[1], color='C3', linewidth=1, linestyle='--')
 ax.legend([a,b], [r'${\cal L}(W_t)$', r'${\cal L}_{01}(W_t)$'], loc='upper right', fontsize=6, frameon=True, ncol=1)
 ax.set_title(r'$t\to {\cal L}(W_t)$', fontsize=10)
-fig.savefig('spike_loss.pdf', bbox_inches='tight', pad_inches=0)
+fig.savefig(SAVE_DIR / 'spike_loss.pdf', bbox_inches='tight', pad_inches=0)
