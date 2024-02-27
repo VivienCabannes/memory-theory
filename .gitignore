@@ -2,7 +2,7 @@ __pycache__/
 figs/
 figures/
 eos_figures/
-notebooks/eos_data
+notebooks/
 
 *.npy
 *.pdf
