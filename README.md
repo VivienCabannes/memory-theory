@@ -1,4 +1,1 @@
-#### Installation
-
-The code is based on pytorch.
-Visualizations are done with matplotlib.
+#### Code base around associative memory research stream
